@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /reserva/
+
+Sitemap: https://www.culmenodontologia.cl/sitemap.xml

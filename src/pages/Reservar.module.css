@@ -1,0 +1,12 @@
+.cabecera {
+  padding: calc(var(--header-h) + var(--space-8)) 0 calc(var(--space-11) + var(--space-6));
+  background:
+    radial-gradient(55% 90% at 90% 0%, rgba(201, 163, 90, 0.18), transparent 70%),
+    var(--surface-dark);
+  color: var(--text-on-dark);
+}
+.cabecera :global(.contenedor) { display: grid; gap: var(--space-4); justify-items: start; }
+.cabecera h1 { font-size: var(--text-3xl); line-height: var(--leading-tight); }
+.cabecera h1 em { color: var(--brand-on-dark); }
+.cabecera p { max-width: 56ch; color: var(--text-on-dark-muted); }
+.cuerpo { margin-top: calc(-1 * var(--space-11)); padding-bottom: var(--section-y); }

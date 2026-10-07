@@ -1,0 +1,7 @@
+.seccion {
+  padding-block: var(--section-y);
+  background:
+    radial-gradient(50% 40% at 0% 0%, var(--oro-50), transparent 70%),
+    var(--surface-page);
+  scroll-margin-top: var(--header-h);
+}

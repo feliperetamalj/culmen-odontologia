@@ -1,0 +1,145 @@
+/* ============================================================================
+   TOKENS · Culmen Odontología
+   primitivo -> semántico. Los componentes consumen solo la capa semántica.
+   Oro medido sobre el logotipo original: degradado #A47E41 -> #D9BA66, medio #B08C4A.
+   Contraste verificado con contraste.py (ver comentarios).
+   ========================================================================== */
+
+:root {
+  /* ---------- CAPA 1 · PRIMITIVOS ---------- */
+  --oro-50:  #FBF7EE;
+  --oro-100: #F4EAD3;
+  --oro-200: #E9D6A8;
+  --oro-300: #DCBE77;  /* extremo claro del degradado del logo */
+  --oro-400: #C9A35A;
+  --oro-500: #B08C4A;  /* MARCA · tono medio del isotipo */
+  --oro-600: #9A773A;
+  --oro-700: #8A6A2F;  /* texto oro sobre claro (4.69:1 marfil · 5.02:1 blanco) */
+  --oro-800: #6E5425;
+
+  --tinta-50:  #F7F5F1;
+  --tinta-100: #EDE9E2;
+  --tinta-200: #DCD5CA;
+  --tinta-300: #BDB4A6;
+  --tinta-400: #968C7D;
+  --tinta-500: #6F6659;
+  --tinta-600: #554E44;
+  --tinta-700: #3D3831;
+  --tinta-800: #26231F;
+  --tinta-900: #1A1816;
+  --tinta-950: #121110;
+
+  --marfil: #FAF7F1;
+  --blanco: #FFFFFF;
+
+  --verde-700: #2F6B47;
+  --verde-50:  #ECF5EF;
+  --rojo-700:  #A3322A;
+  --rojo-50:   #FBEDEB;
+
+  --font-display: 'Cormorant Garamond', 'Iowan Old Style', Georgia, serif;
+  --font-body: 'Montserrat', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-md:   clamp(1.0625rem, 1rem + 0.25vw, 1.125rem);
+  --text-lg:   clamp(1.125rem, 1rem + 0.5vw, 1.3125rem);
+  --text-xl:   clamp(1.5rem, 1.25rem + 0.9vw, 1.875rem);
+  --text-2xl:  clamp(2rem, 1.55rem + 1.6vw, 2.875rem);
+  --text-3xl:  clamp(2.5rem, 1.8rem + 2.6vw, 4rem);
+  --text-4xl:  clamp(2.75rem, 1.7rem + 4vw, 5.25rem);
+
+  --leading-tight: 1.02;
+  --leading-snug: 1.15;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.7;
+
+  /* Tracking por tamaño: serif grande se aprieta, etiquetas en mayúscula se abren
+     como el "O D O N T O L O G Í A" del logotipo. */
+  --tracking-display: -0.015em;
+  --tracking-body: 0;
+  --tracking-label: 0.2em;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 2.5rem;
+  --space-8: 3rem;
+  --space-9: 4rem;
+  --space-10: 5rem;
+  --space-11: 6.5rem;
+
+  --section-y: clamp(4.5rem, 2.5rem + 7vw, 8.5rem);
+  --gutter: clamp(1rem, 0.4rem + 3vw, 3rem);
+  --container-max: 1240px;
+  --header-h: 72px;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-xl: 32px;
+  --radius-full: 999px;
+  /* Corona del diente: arco amplio arriba, esquinas firmes abajo. */
+  --radius-corona: 48% 48% var(--radius-lg) var(--radius-lg) / 22% 22% var(--radius-lg) var(--radius-lg);
+
+  --shadow-sm: 0 1px 2px rgba(18, 17, 16, 0.06), 0 2px 8px rgba(18, 17, 16, 0.05);
+  --shadow-md: 0 10px 30px rgba(18, 17, 16, 0.09);
+  --shadow-lg: 0 24px 60px rgba(18, 17, 16, 0.14);
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 120ms;
+  --dur-base: 240ms;
+  --dur-slow: 420ms;
+  --dur-reveal: 700ms;
+
+  --z-sticky: 40;
+  --z-header: 50;
+  --z-modal: 70;
+
+  /* ---------- CAPA 2 · SEMÁNTICOS ---------- */
+  --surface-page: var(--marfil);
+  --surface-raised: var(--blanco);
+  --surface-sunken: var(--tinta-50);
+  --surface-dark: var(--tinta-950);
+  --surface-dark-raised: var(--tinta-900);
+
+  --text-primary: var(--tinta-950);
+  --text-secondary: var(--tinta-600);   /* 7.67:1 marfil */
+  --text-muted: var(--tinta-500);       /* 5.28:1 marfil */
+  --text-on-dark: var(--blanco);
+  --text-on-dark-muted: var(--tinta-300); /* 9.2:1 sobre tinta-950 */
+
+  /* Oro: puro solo sobre oscuro o como fondo con texto oscuro encima. */
+  --brand: var(--oro-400);              /* fondo de botón · 7.97:1 con tinta-950 */
+  --brand-hover: var(--oro-300);
+  --brand-on-dark: var(--oro-300);      /* texto · 10.49:1 sobre tinta-950 */
+  --brand-on-light: var(--oro-700);     /* texto · 4.69:1 sobre marfil */
+  --brand-subtle: var(--oro-50);
+  --on-brand: var(--tinta-950);
+
+  --border-subtle: var(--tinta-100);
+  --border-default: var(--tinta-200);
+  --border-strong: var(--tinta-300);
+  --border-dark: rgba(255, 255, 255, 0.12);
+
+  --focus-ring: 0 0 0 2px var(--surface-page), 0 0 0 4px var(--oro-700);
+  --focus-ring-dark: 0 0 0 2px var(--tinta-950), 0 0 0 4px var(--oro-300);
+
+  --status-ok: var(--verde-700);
+  --status-ok-bg: var(--verde-50);
+  --status-error: var(--rojo-700);
+  --status-error-bg: var(--rojo-50);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-base: 1ms;
+    --dur-slow: 1ms;
+    --dur-reveal: 160ms; /* fundido corto en vez de desplazamiento */
+  }
+}

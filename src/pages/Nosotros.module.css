@@ -1,0 +1,15 @@
+.apoyo { padding-block: var(--section-y); background: var(--surface-raised); }
+.grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: var(--space-6) var(--space-4); }
+.persona { display: grid; gap: var(--space-1); text-align: center; }
+.persona img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  object-position: top;
+  border-radius: var(--radius-corona);
+  margin-bottom: var(--space-3);
+  background: var(--surface-sunken);
+}
+.persona h3 { font-size: var(--text-lg); line-height: 1.2; }
+.persona p { font-size: var(--text-sm); color: var(--text-muted); }
+.nota { margin-top: var(--space-7); font-size: var(--text-xs); color: var(--text-muted); }

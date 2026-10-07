@@ -1,0 +1,8 @@
+.cabecera { display: grid; gap: var(--space-4); max-width: 46rem; margin-bottom: var(--space-8); }
+.centrado { margin-inline: auto; text-align: center; justify-items: center; }
+.titulo { font-size: var(--text-3xl); line-height: var(--leading-tight); color: var(--text-primary); }
+.titulo em { color: var(--brand-on-light); }
+.texto { font-size: var(--text-md); color: var(--text-secondary); max-width: 60ch; }
+.claro .titulo { color: var(--text-on-dark); }
+.claro .titulo em { color: var(--brand-on-dark); }
+.claro .texto { color: var(--text-on-dark-muted); }

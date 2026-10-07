@@ -1,0 +1,16 @@
+.pagina {
+  min-height: 80vh;
+  padding: calc(var(--header-h) + var(--space-10)) 0 var(--space-11);
+  background: radial-gradient(55% 90% at 90% 0%, rgba(201, 163, 90, 0.16), transparent 70%), var(--surface-dark);
+  color: var(--text-on-dark);
+}
+.caja { display: grid; gap: var(--space-5); justify-items: start; max-width: 760px; }
+.caja h1 { font-size: var(--text-3xl); line-height: var(--leading-tight); }
+.caja > p { color: var(--text-on-dark-muted); max-width: 56ch; }
+.detalle { display: grid; gap: var(--space-3); width: 100%; padding: var(--space-5) var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--border-dark); background: var(--surface-dark-raised); }
+.detalle dt { font-size: var(--text-xs); letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--text-on-dark-muted); }
+.detalle dd { font-weight: 600; }
+.detalle dd::first-letter { text-transform: uppercase; }
+.tachado dd { text-decoration: line-through; text-decoration-color: var(--brand-on-dark); color: var(--text-on-dark-muted); }
+.acciones { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.error { display: flex; gap: var(--space-2); color: #F2B8B0; }
