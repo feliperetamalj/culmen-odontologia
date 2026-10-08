@@ -295,9 +295,9 @@ export const PAGINAS = {
         notas: ['Carencia de 1 día para urgencias.', '30 días para tratamientos básicos y preventivos.', '180 días para prótesis e implantes.'],
       },
       {
-        tipo: 'logos', id: 'convenios', etiqueta: 'Convenios', titulo: 'Empresas que confían en nosotros',
-        texto: 'Sus trabajadores y sus familias tienen descuentos y beneficios exclusivos en Culmen.',
-        nota: '¿Tienes una empresa y te interesa un convenio? Escríbenos a contacto@culmenodontologia.cl.',
+        tipo: 'logos', id: 'convenios', etiqueta: 'Convenios', titulo: 'Beneficios para empresas',
+        texto: 'Descuentos y beneficios para trabajadores y sus familias. ¿Tienes una empresa y te interesa un convenio? Escríbenos.',
+        sobreLogos: 'Algunas de las empresas que confían en nosotros:',
         items: COBERTURA.convenios,
       },
       {

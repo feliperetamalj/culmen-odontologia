@@ -128,12 +128,12 @@ function Chips({ etiqueta, titulo, texto, items }) {
   );
 }
 
-function Logos({ etiqueta, titulo, texto, items, nota }) {
+function Logos({ etiqueta, titulo, texto, items, sobreLogos }) {
   return (
     <>
-      <Cabecera etiqueta={etiqueta} titulo={titulo} texto={texto} centrado />
-      <CarruselLogos items={items} etiqueta={titulo} />
-      {nota && <p className={s.notaLogos}>{nota}</p>}
+      <Cabecera etiqueta={etiqueta} titulo={titulo} texto={texto} />
+      <p className={s.sobreLogos}>{sobreLogos}</p>
+      <CarruselLogos items={items} etiqueta={sobreLogos} />
     </>
   );
 }

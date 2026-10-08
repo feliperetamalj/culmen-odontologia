@@ -1,9 +1,10 @@
-.carrusel { display: grid; justify-items: end; gap: var(--space-3); }
-
 /* Bordes que se desvanecen: los logos entran y salen sin corte. */
 .ventana {
   width: 100%;
   overflow: hidden;
+  cursor: pointer;
+  border-radius: var(--radius-lg);
+  -webkit-tap-highlight-color: transparent;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
   mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
 }
@@ -16,9 +17,8 @@
 /* Dos mitades idénticas: llegar a -50 % es volver al inicio sin salto. */
 @keyframes desplazar { to { transform: translateX(-50%); } }
 
-.carrusel:hover .pista,
-.carrusel:focus-within .pista,
-.pausado .pista { animation-play-state: paused; }
+.ventana:focus-visible .pista,
+.detenido .pista { animation-play-state: paused; }
 
 .tarjeta {
   display: grid;
@@ -42,21 +42,13 @@
   transition: filter var(--dur-slow) var(--ease-out), opacity var(--dur-slow) var(--ease-out);
 }
 /* Color al detenerse: el visitante que mira, ve la marca real. */
-.carrusel:hover .tarjeta img,
-.pausado .tarjeta img { filter: none; opacity: 1; }
-
-.control {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 44px;
-  padding: 0 var(--space-4);
-  border-radius: var(--radius-full);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--text-secondary);
+.ventana:focus-visible .tarjeta img,
+.detenido .tarjeta img { filter: none; opacity: 1; }
+/* Solo con mouse: en pantallas táctiles el :hover queda "pegado" tras un toque. */
+@media (hover: hover) {
+  .ventana:hover .pista { animation-play-state: paused; }
+  .ventana:hover .tarjeta img { filter: none; opacity: 1; }
 }
-.control:hover { color: var(--text-primary); background: var(--surface-sunken); }
 
 @media (max-width: 560px) {
   .tarjeta { width: 180px; height: 100px; padding: var(--space-4); }
@@ -71,5 +63,5 @@
   .tarjeta { margin-right: 0; }
   .tarjeta[aria-hidden] { display: none; }
   .tarjeta img { filter: none; opacity: 1; }
-  .control { display: none; }
+  .ventana { cursor: default; }
 }

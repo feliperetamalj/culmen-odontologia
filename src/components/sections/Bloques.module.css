@@ -116,4 +116,4 @@
 }
 .blanco .muro li { background: var(--surface-page); }
 
-.notaLogos { margin-top: var(--space-5); text-align: center; font-size: var(--text-sm); color: var(--text-muted); }
+.sobreLogos { margin-bottom: var(--space-3); font-size: var(--text-xs); font-weight: 600; letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--text-muted); }
