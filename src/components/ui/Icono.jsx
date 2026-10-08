@@ -22,6 +22,13 @@ const TRAZOS = {
   tarjeta: <><rect x="3" y="6" width="18" height="12.5" rx="2" /><path d="M3 10h18M7 15h3" /></>,
   externo: <path d="M14 4h6v6M20 4l-8.5 8.5M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10" />,
   alerta: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5v5.5M12 16.2v.3" /></>,
+  pausa: <path d="M9 6v12M15 6v12" strokeWidth="2.4" />,
+  play: <path d="M8 5.5v13l10.5-6.5L8 5.5Z" fill="currentColor" />,
+  pregunta: <><circle cx="12" cy="12" r="8.5" /><path d="M9.6 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1.1.9-1.1 1.6v.4M12 16.6v.3" /></>,
+  diente: <path d="M7.5 4.5c-2.2 0-3.5 1.8-3.5 4.2 0 2.6 1.2 4 1.7 6.4.5 2.4.9 4.4 2.3 4.4 1.6 0 1.4-4.5 4-4.5s2.4 4.5 4 4.5c1.4 0 1.8-2 2.3-4.4.5-2.4 1.7-3.8 1.7-6.4 0-2.4-1.3-4.2-3.5-4.2-1.9 0-2.8 1.2-4.5 1.2S9.4 4.5 7.5 4.5Z" />,
+  nino: <><circle cx="12" cy="8" r="3.2" /><path d="M6.5 20c.4-3.3 2.7-5.3 5.5-5.3s5.1 2 5.5 5.3M9.8 7.2c.8-1.4 3.2-1.6 4.4-.2" /></>,
+  sonrisa: <><circle cx="12" cy="12" r="8.5" /><path d="M8.5 13.5c.9 1.3 2.1 2 3.5 2s2.6-.7 3.5-2M9 9.5v.3M15 9.5v.3" /></>,
+  rayo: <path d="M13 3.5 5.5 13.5H12l-1 7 7.5-10H12l1-7Z" />,
 };
 
 export function Icono({ nombre, tamano = '1.25em', className, titulo }) {

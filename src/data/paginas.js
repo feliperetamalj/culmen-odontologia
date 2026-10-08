@@ -257,6 +257,7 @@ export const PAGINAS = {
         texto: 'Tratamientos estéticos y funcionales mínimamente invasivos para el equilibrio del rostro, con resultados armónicos y seguros.',
         profesionales: [['daniela-uribe', '']],
       },
+      { tipo: 'guia' },
     ],
     cta: { titulo: '¿No sabes qué especialidad necesitas?', texto: 'Reserva una evaluación de odontología general y te orientamos según tu diagnóstico.' },
   },

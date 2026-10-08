@@ -82,6 +82,14 @@ export function Reserva({ inicial = {}, nivel: H = 'h3' }) {
   const elegirSede = cambiar((v) => { setSede(v); setDesde(null); });
   const elegirArea = cambiar((v) => { setArea(v); setProf('todos'); setDesde(null); });
 
+  // En páginas con guía, baja hasta ella; si no, lleva a la de la portada.
+  const irAGuia = (e) => {
+    const guia = document.getElementById('guia');
+    if (!guia) return;
+    e.preventDefault();
+    guia.scrollIntoView({ behavior: suave(), block: 'start' });
+  };
+
   const reiniciar = () => {
     setResultado(null); setSlot(null); setPaso(1); setRecarga((n) => n + 1);
   };
@@ -116,6 +124,9 @@ export function Reserva({ inicial = {}, nivel: H = 'h3' }) {
 
             <fieldset className={s.grupo}>
               <legend>¿Qué necesitas?</legend>
+              <a href="/#guia" className={s.ayudaGuia} onClick={irAGuia}>
+                <Icono nombre="pregunta" tamano="16" /> ¿No sabes cuál? Te ayudamos a elegir
+              </a>
               <div className={s.areas}>
                 {AREAS.map((a) => (
                   <label key={a.id} className={s.area}>

@@ -83,3 +83,6 @@ export const PREGUNTAS = [
     r: 'Efectivo, débito y crédito, con facilidades de pago en cuotas. Revisa las promociones de cuotas sin interés con tarjetas bancarias.',
   },
 ];
+
+// Video de presentación oficial (canal de YouTube de la clínica). Fondo del hero.
+export const VIDEO = { youtube: 'a3OkmneGoNU', titulo: 'Presentación Culmen Odontología, Talca' };

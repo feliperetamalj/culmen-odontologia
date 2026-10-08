@@ -1,4 +1,5 @@
-import { RESENAS, SEDES } from '../data/clinica.js';
+import { useEffect, useRef, useState } from 'react';
+import { RESENAS, SEDES, VIDEO } from '../data/clinica.js';
 import { CIFRAS } from '../data/equipo.js';
 import { COBERTURA, EXPERIENCIA, INSTALACIONES, PILARES, TRATAMIENTOS } from '../data/paginas.js';
 import { foto } from '../utils/media.js';
@@ -9,6 +10,7 @@ import { Equipo } from '../components/sections/Equipo.jsx';
 import { Preguntas } from '../components/sections/Preguntas.jsx';
 import { SeccionReserva } from '../components/sections/SeccionReserva.jsx';
 import { Sedes } from '../components/sections/Sedes.jsx';
+import { Guia } from '../components/sections/Guia.jsx';
 import s from './Inicio.module.css';
 
 const DESTACADOS = [
@@ -25,6 +27,7 @@ export function Inicio() {
         titulo={<>Elige tu hora <em>ahora mismo</em></>}
         texto="Estas son las horas libres de ambas sedes, actualizadas al momento. Reservas en un minuto y la confirmación te llega por correo."
       />
+      <Guia />
       <PrimeraCita />
       <Tratamientos />
       <Equipo
@@ -68,20 +71,7 @@ function Hero() {
           <p className={s.micro}><Icono nombre="check" tamano="16" /> Reserva en 1 minuto · confirmación inmediata por correo</p>
         </div>
 
-        <div className={s.heroFoto}>
-          <img
-            src={foto('hero-equipo')}
-            alt="El equipo de Culmen Odontología frente al logotipo de la clínica"
-            fetchpriority="high"
-            decoding="async"
-            width="1800"
-            height="1203"
-          />
-          <p className={s.heroNota}>
-            <span className={s.heroNumero}>45</span>
-            <span>minutos de evaluación en tu primera cita</span>
-          </p>
-        </div>
+        <HeroMedia />
       </div>
 
       <div className="contenedor">
@@ -99,6 +89,90 @@ function Hero() {
         </dl>
       </div>
     </section>
+  );
+}
+
+// Foto del equipo de inmediato; el video de presentación se suma cuando la página
+// terminó de cargar (no compite con la primera pintura). Solo se muestra cuando
+// YouTube confirma que está reproduciendo: si el navegador bloquea la reproducción
+// automática, queda la foto. Sin video si se pidió menos movimiento o ahorro de datos.
+const YT = 'https://www.youtube-nocookie.com';
+const VIDEO_SRC = `${YT}/embed/${VIDEO.youtube}?autoplay=1&mute=1&loop=1&playlist=${VIDEO.youtube}&controls=0&playsinline=1&rel=0&modestbranding=1&disablekb=1&iv_load_policy=3&enablejsapi=1`;
+
+function HeroMedia() {
+  const [cargar, setCargar] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [pausado, setPausado] = useState(false);
+  const iframe = useRef(null);
+
+  useEffect(() => {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches || navigator.connection?.saveData) return;
+    const t = setTimeout(() => setCargar(true), document.readyState === 'complete' ? 600 : 2000);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Estado del reproductor vía postMessage (API de iframes de YouTube, sin cargar su script).
+  useEffect(() => {
+    if (!cargar) return;
+    let espera;
+    const alRecibir = (e) => {
+      if (e.origin !== YT || e.source !== iframe.current?.contentWindow) return;
+      let d;
+      try { d = JSON.parse(e.data); } catch { return; }
+      const estado = d.event === 'onStateChange' ? d.info : d.info?.playerState;
+      // 1 = reproduciendo. Se espera a que YouTube oculte título y rótulos.
+      if (estado === 1 && !espera) espera = setTimeout(() => setVisible(true), 3500);
+    };
+    window.addEventListener('message', alRecibir);
+    return () => { window.removeEventListener('message', alRecibir); clearTimeout(espera); };
+  }, [cargar]);
+
+  const escuchar = () =>
+    iframe.current?.contentWindow?.postMessage(JSON.stringify({ event: 'listening', id: 'hero', channel: 'widget' }), YT);
+
+  const alternar = () => {
+    iframe.current?.contentWindow?.postMessage(
+      JSON.stringify({ event: 'command', func: pausado ? 'playVideo' : 'pauseVideo', args: [] }),
+      YT,
+    );
+    setPausado(!pausado);
+  };
+
+  return (
+    <div className={s.heroFoto}>
+      <div className={s.media}>
+        <img
+          src={foto('hero-equipo')}
+          alt="El equipo de Culmen Odontología frente al logotipo de la clínica"
+          fetchpriority="high"
+          decoding="async"
+          width="1800"
+          height="1203"
+        />
+        {cargar && (
+          <iframe
+            ref={iframe}
+            className={`${s.video} ${visible ? s.videoVisible : ''}`}
+            src={`${VIDEO_SRC}&origin=${encodeURIComponent(window.location.origin)}`}
+            title={VIDEO.titulo}
+            allow="autoplay; encrypted-media; picture-in-picture"
+            tabIndex={-1}
+            aria-hidden="true"
+            onLoad={escuchar}
+          />
+        )}
+        {visible && (
+          <button type="button" className={s.pausa} onClick={alternar}>
+            <Icono nombre={pausado ? 'play' : 'pausa'} tamano="18" />
+            <span className="sr-only">{pausado ? 'Reproducir video' : 'Pausar video'}</span>
+          </button>
+        )}
+      </div>
+      <p className={s.heroNota}>
+        <span className={s.heroNumero}>45</span>
+        <span>minutos de evaluación en tu primera cita</span>
+      </p>
+    </div>
   );
 }
 

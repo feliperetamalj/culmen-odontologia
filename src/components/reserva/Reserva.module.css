@@ -110,6 +110,20 @@
 }
 
 .areas { display: grid; gap: var(--space-1); }
+.ayudaGuia {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  margin: -6px 0 var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--brand-on-light);
+  text-decoration: underline;
+  text-decoration-color: var(--oro-200);
+  text-underline-offset: 0.25em;
+}
+.ayudaGuia:hover { text-decoration-color: currentColor; }
 .area {
   display: grid;
   padding: var(--space-3) var(--space-4);
@@ -269,6 +283,11 @@
   .areas { grid-auto-flow: column; grid-auto-columns: max-content; overflow-x: auto; padding: 4px; margin: -4px; }
   .area { border-color: var(--border-default); border-radius: var(--radius-full); padding: var(--space-2) var(--space-4); min-height: 44px; align-content: center; }
   .areaDetalle { display: none; }
+  /* Profesionales en una sola fila deslizable: el calendario queda más arriba. */
+  .profesionales { flex-wrap: nowrap; overflow-x: auto; padding: 4px; margin: -4px; scrollbar-width: none; }
+  .profesionales::-webkit-scrollbar, .areas::-webkit-scrollbar, .dias::-webkit-scrollbar { display: none; }
+  .areas, .dias { scrollbar-width: none; }
+  .chip { flex-shrink: 0; white-space: nowrap; }
   .resumen {
     position: sticky;
     bottom: 0;

@@ -3,12 +3,14 @@ import { foto, iniciales, retrato } from '../../utils/media.js';
 import { reservarCon } from '../../utils/enlaces.js';
 import { Boton, Cabecera, Etiqueta, Icono, Reveal } from '../ui';
 import { Equipo } from './Equipo.jsx';
+import { Guia } from './Guia.jsx';
 import s from './Bloques.module.css';
 
 /** Renderiza los bloques de contenido de una página de tratamiento (src/data/paginas.js). */
 export function Bloques({ bloques }) {
   return bloques.map((b, i) => {
     const fondo = b.oscuro ? s.oscuro : i % 2 ? s.blanco : s.claro;
+    if (b.tipo === 'guia') return <Guia key={i} />;
     if (b.tipo === 'equipo') return <Equipo key={i} ids={b.ids} titulo={b.titulo} fondo={i % 2 ? 'blanco' : 'claro'} />;
     const Tipo = TIPOS[b.tipo];
     return (
