@@ -6,6 +6,7 @@ import { diaDe, esManana, fechaLarga, hora, partesDia, rangoDias, sumarDias } fr
 import { googleCalendar, whatsapp } from '../../utils/enlaces.js';
 import { iniciales, retrato } from '../../utils/media.js';
 import { formatearRut, validarPaciente } from '../../../supabase/functions/reservas/validar.js';
+import { crearIcs } from '../../../supabase/functions/reservas/calendario.js';
 import { Boton, Icono } from '../ui';
 import s from './Reserva.module.css';
 
@@ -433,6 +434,11 @@ function Datos({ H, tituloRef, slot, sede, area, onVolver, onListo, onOcupada })
 
 function Confirmacion({ H, tituloRef, resultado, onOtra }) {
   const r = resultado.reserva;
+  const descargarIcs = () => {
+    const url = URL.createObjectURL(new Blob([crearIcs(r)], { type: 'text/calendar;charset=utf-8' }));
+    Object.assign(document.createElement('a'), { href: url, download: 'hora-culmen.ics' }).click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
   return (
     <div className={s.confirmacion}>
       <span className={s.sello} aria-hidden="true"><Icono nombre="check" tamano="34" /></span>
@@ -451,7 +457,8 @@ function Confirmacion({ H, tituloRef, resultado, onOtra }) {
           : 'Tu hora quedó registrada, pero no pudimos enviarte el correo. Guarda una captura de esta pantalla o escríbenos por WhatsApp si necesitas cambiarla.'}
       </p>
       <div className={s.confirmacionAcciones}>
-        <Boton a={googleCalendar(r)} variante="oscuro"><Icono nombre="calendario" /> Agregar a mi calendario</Boton>
+        <Boton a={googleCalendar(r)} variante="oscuro"><Icono nombre="calendario" /> Google Calendar</Boton>
+        <Boton variante="contorno" onClick={descargarIcs}><Icono nombre="calendario" /> Apple / Outlook</Boton>
         <Boton a={r.maps} variante="contorno"><Icono nombre="ubicacion" /> Cómo llegar</Boton>
         <Boton variante="texto" onClick={onOtra}>Reservar otra hora</Boton>
       </div>

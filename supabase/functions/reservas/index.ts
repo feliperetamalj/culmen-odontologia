@@ -12,6 +12,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4';
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
 import { validarPaciente } from './validar.js';
+import { crearIcs } from './calendario.js';
 
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
   auth: { persistSession: false },
@@ -131,7 +132,12 @@ async function reservar(b: Record<string, unknown>) {
   // Calendario y correo no bloquean la reserva: si fallan, queda registrada igual.
   const [eventoId, correo] = await Promise.all([
     crearEvento(prof.calendar_id ?? sed.calendar_id, r, prof, sed).catch((e) => (console.error('Google', e), null)),
-    enviarCorreo(r.email, `Hora confirmada · ${fechaLarga(r.inicio)}, ${hora(r.inicio)}`, correoConfirmacion(r, prof, sed))
+    enviarCorreo(
+      r.email,
+      `Hora confirmada · ${fechaLarga(r.inicio)}, ${hora(r.inicio)}`,
+      correoConfirmacion(r, prof, sed),
+      crearIcs({ ...resumen(r, prof, sed), cancelar: `${SITE}/reserva/cancelar?token=${r.cancel_token}` }),
+    )
       .catch((e) => (console.error('Correo', e), false)),
   ]);
   if (eventoId) await db.from('reservas').update({ google_event_id: eventoId }).eq('id', r.id);
@@ -185,7 +191,7 @@ type Fila = Record<string, any>;
 
 function resumen(r: Fila, prof: Fila, sede: Fila) {
   return {
-    inicio: r.inicio, fin: r.fin, nombre: r.nombre.split(' ')[0],
+    id: r.id, inicio: r.inicio, fin: r.fin, nombre: r.nombre.split(' ')[0],
     profesional: prof.nombre, especialidad: prof.especialidad,
     sede: sede.nombre, direccion: sede.direccion, maps: sede.maps_url, whatsapp: sede.whatsapp,
   };
@@ -205,7 +211,7 @@ function enlaceGoogleCalendar(r: Fila, prof: Fila, sede: Fila) {
 // --- Correo (SMTP o Resend) ---------------------------------------------------
 // Supabase bloquea los puertos 25 y 587: usar SMTP con TLS directo en 465.
 
-async function enviarCorreo(para: string, asunto: string, html: string) {
+async function enviarCorreo(para: string, asunto: string, html: string, ics: string) {
   const from = Deno.env.get('EMAIL_FROM') ?? 'Culmen Odontología <reservas@culmenodontologia.cl>';
   const replyTo = Deno.env.get('EMAIL_REPLY_TO') ?? 'contacto@culmenodontologia.cl';
   const host = Deno.env.get('SMTP_HOST');
@@ -219,7 +225,11 @@ async function enviarCorreo(para: string, asunto: string, html: string) {
       },
     });
     try {
-      await smtp.send({ from, to: para, replyTo, subject: asunto, html, content: 'Tu hora en Culmen Odontología está confirmada.' });
+      await smtp.send({
+        from, to: para, replyTo, subject: asunto, html,
+        content: 'Tu hora en Culmen Odontología está confirmada.',
+        attachments: [{ filename: 'hora-culmen.ics', content: ics, encoding: 'text', contentType: 'text/calendar; charset=utf-8; method=PUBLISH' }],
+      });
       return true;
     } finally {
       await smtp.close();
@@ -230,7 +240,10 @@ async function enviarCorreo(para: string, asunto: string, html: string) {
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from, reply_to: replyTo, to: [para], subject: asunto, html }),
+    body: JSON.stringify({
+      from, reply_to: replyTo, to: [para], subject: asunto, html,
+      attachments: [{ filename: 'hora-culmen.ics', content: btoa(String.fromCharCode(...new TextEncoder().encode(ics))) }],
+    }),
   });
   if (!res.ok) console.error('Resend', res.status, await res.text());
   return res.ok;
@@ -254,12 +267,18 @@ function correoConfirmacion(r: Fila, prof: Fila, sede: Fila) {
       ${fila('Hora', `${hora(r.inicio)} – ${hora(r.fin)}`)}
       ${fila('Profesional', `${esc(prof.nombre)}<br><span style="font-weight:400;color:#6b6358;font-size:13px">${esc(prof.especialidad)}</span>`)}
       ${fila('Sede', `${esc(sede.nombre)}<br><span style="font-weight:400;color:#6b6358;font-size:13px">${esc(sede.direccion)}</span>`)}
+      ${fila('Paciente', esc(r.nombre))}
+      ${fila('Celular', esc(r.telefono))}
+      ${r.motivo ? fila('Motivo', esc(r.motivo)) : ''}
+      ${r.prevision ? fila('Previsión', esc(r.prevision)) : ''}
+      ${r.comentario ? fila('Comentario', `<span style="font-weight:400">${esc(r.comentario)}</span>`) : ''}
     </table>
     <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-      <td style="background:#121110;border-radius:999px"><a href="${enlaceGoogleCalendar(r, prof, sede)}" style="display:inline-block;padding:13px 22px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700">Agregar a mi calendario</a></td>
+      <td style="background:#121110;border-radius:999px"><a href="${enlaceGoogleCalendar(r, prof, sede)}" style="display:inline-block;padding:13px 22px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700">Agregar a Google Calendar</a></td>
       <td style="width:10px"></td>
       <td style="border:1px solid #d9cdb6;border-radius:999px"><a href="${esc(sede.maps_url)}" style="display:inline-block;padding:12px 20px;color:#141210;text-decoration:none;font-size:14px;font-weight:700">Cómo llegar</a></td>
     </tr></table>
+    <p style="margin:12px 0 0;color:#6b6358;font-size:13px;line-height:1.6">¿Usas Apple Calendar u Outlook? Abre el archivo <strong>hora-culmen.ics</strong> adjunto y la hora queda en tu calendario, con recordatorio el día antes.</p>
     <p style="margin:28px 0 8px;color:#141210;font-size:15px;font-weight:700">Para tu visita</p>
     <ul style="margin:0;padding-left:18px;color:#3d3830;font-size:14px;line-height:1.7">
       <li>Llega 10 minutos antes.</li>
