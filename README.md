@@ -44,7 +44,8 @@ general Lun–Vie 9–19 y Sáb 9–13). En Supabase → *Table Editor* → `hor
 por bloque: `profesional_id`, `sede_id` (`centro` / `las-rastras`), `dia`
 (0 = domingo … 6 = sábado), `desde`, `hasta`, `duracion_min` (45 por defecto).
 Para sacar a alguien de la agenda online: `profesionales.activo = false`.
-Feriados en la tabla `feriados` (cargados hasta diciembre de 2027).
+Feriados en la tabla `feriados` (cargados hasta diciembre de 2027: **agregar los de 2028 antes de octubre de 2027**).
+La agenda online permite reservar en el mes en curso y los dos siguientes (`MESES_RESERVABLES`, igual en `src/utils/fechas.js` y en la Edge Function).
 
 ### 2. Correo de confirmación (Resend)
 

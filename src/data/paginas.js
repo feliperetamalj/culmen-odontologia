@@ -34,7 +34,14 @@ export const INSTALACIONES = [
 ];
 
 export const COBERTURA = {
-  isapres: ['Zurich', 'Consorcio', 'Chilena Consolidada', 'Bice Vida', 'Sermecoop'],
+  // Bonificación automática I-Med. logo = archivo en src/assets/seguros
+  isapres: [
+    { nombre: 'Zurich', logo: 'zurich' },
+    { nombre: 'Consorcio', logo: 'consorcio' },
+    { nombre: 'Chilena Consolidada', logo: 'chilena-consolidada' },
+    { nombre: 'Bice Vida', logo: 'bice-vida' },
+    { nombre: 'Sermecoop', logo: 'sermecoop' },
+  ],
   // logo = archivo en src/assets/convenios
   convenios: [
     { nombre: 'Colegio Médico de Talca', logo: 'colegio-medico-talca' },
@@ -279,7 +286,7 @@ export const PAGINAS = {
     area: 'general',
     bloques: [
       {
-        tipo: 'chips', id: 'reembolso', etiqueta: 'Reembolso en línea', titulo: 'Bonificación automática I-Med',
+        tipo: 'logos', id: 'reembolso', sobreLogos: 'Seguros con reembolso automático:', etiqueta: 'Reembolso en línea', titulo: 'Bonificación automática I-Med',
         texto: 'Si tienes seguro complementario con alguna de estas compañías, el reembolso se hace en el momento. Si tu seguro no está, igual te dejamos listo el trámite el mismo día.',
         items: COBERTURA.isapres,
       },

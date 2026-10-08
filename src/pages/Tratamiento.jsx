@@ -1,7 +1,7 @@
 import { useTitulo } from '../hooks/useTitulo.js';
 import { PageHero } from '../components/sections/PageHero.jsx';
 import { Bloques } from '../components/sections/Bloques.jsx';
-import { SeccionReserva } from '../components/sections/SeccionReserva.jsx';
+import { CtaReserva } from '../components/sections/CtaReserva.jsx';
 
 /** Página de tratamiento armada desde src/data/paginas.js, cerrando con la agenda en vivo. */
 export function Tratamiento({ pagina }) {
@@ -10,12 +10,7 @@ export function Tratamiento({ pagina }) {
     <>
       <PageHero {...pagina} />
       <Bloques bloques={pagina.bloques} />
-      <SeccionReserva
-        key={pagina.ruta}
-        titulo={pagina.cta.titulo}
-        texto={pagina.cta.texto}
-        inicial={{ area: pagina.area }}
-      />
+      <CtaReserva titulo={pagina.cta.titulo} texto={pagina.cta.texto} area={pagina.area} />
     </>
   );
 }

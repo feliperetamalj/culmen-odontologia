@@ -8,7 +8,6 @@ import { useTitulo } from '../hooks/useTitulo.js';
 import { Boton, Cabecera, Etiqueta, Icono, Reveal } from '../components/ui';
 import { Equipo } from '../components/sections/Equipo.jsx';
 import { Preguntas } from '../components/sections/Preguntas.jsx';
-import { SeccionReserva } from '../components/sections/SeccionReserva.jsx';
 import { Sedes } from '../components/sections/Sedes.jsx';
 import { Guia } from '../components/sections/Guia.jsx';
 import s from './Inicio.module.css';
@@ -23,13 +22,9 @@ export function Inicio() {
   return (
     <>
       <Hero />
-      <SeccionReserva
-        titulo={<>Elige tu hora <em>ahora mismo</em></>}
-        texto="Estas son las horas libres de ambas sedes, actualizadas al momento. Reservas en un minuto y la confirmación te llega por correo."
-      />
-      <Guia />
       <PrimeraCita />
       <Tratamientos />
+      <Guia />
       <Equipo
         ids={DESTACADOS}
         titulo={<>{CIFRAS.profesionales} profesionales, <em>una misma forma de atender</em></>}
@@ -62,8 +57,8 @@ function Hero() {
             diagnóstico claro. Sin juicios, con todas las alternativas sobre la mesa.
           </p>
           <div className={s.acciones}>
-            <Boton a="#reservar" tamano="lg">
-              <Icono nombre="calendario" /> Ver horas disponibles
+            <Boton a="/reservar" tamano="lg">
+              <Icono nombre="calendario" /> Reservar hora
             </Boton>
             <Boton a="#sedes" tamano="lg" variante="contornoClaro">
               <Icono nombre="ubicacion" /> Nuestras sedes
@@ -237,7 +232,7 @@ function Cobertura() {
             <Icono nombre="escudo" tamano="28" />
             <h3>Reembolso en línea I-Med</h3>
             <p>Bonificación automática con:</p>
-            <ul className={s.lista}>{COBERTURA.isapres.map((x) => <li key={x}>{x}</li>)}</ul>
+            <ul className={s.lista}>{COBERTURA.isapres.map((x) => <li key={x.nombre}>{x.nombre}</li>)}</ul>
             <p className={s.cobNota}>¿Otro seguro? Te dejamos listo el reembolso el mismo día.</p>
           </Reveal>
           <Reveal className={`${s.cobCaja} ${s.cobDestacada} on-dark`} retraso={90}>

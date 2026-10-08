@@ -1,0 +1,6 @@
+.seccion {
+  padding-block: var(--section-y);
+  background: radial-gradient(60% 80% at 50% 0%, var(--oro-50), transparent 70%), var(--surface-page);
+}
+.seccion > :global(.contenedor) > div { margin-bottom: 0; }
+.boton { margin-top: var(--space-3); }

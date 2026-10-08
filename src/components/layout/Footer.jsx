@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { CLINICA, NAV, SEDES } from '../../data/clinica.js';
+import { CLINICA, DESARROLLO, NAV, SEDES } from '../../data/clinica.js';
 import { whatsapp } from '../../utils/enlaces.js';
 import { Boton, Icono } from '../ui';
 import logo from '../../assets/marca/logo-blanco.png';
@@ -58,7 +58,7 @@ export function Footer() {
               <li><Link to="/reservar">Reservar hora</Link></li>
             </ul>
           </nav>
-          <p>© {new Date().getFullYear()} {CLINICA.nombre}</p>
+          <p>© {new Date().getFullYear()} {CLINICA.nombre} · © {DESARROLLO.nombre} {DESARROLLO.anio}</p>
         </div>
       </div>
     </footer>

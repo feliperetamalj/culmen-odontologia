@@ -11,6 +11,9 @@ export const CLINICA = {
   ],
 };
 
+// Crédito del desarrollo en el pie de página.
+export const DESARROLLO = { nombre: 'RB Software Solutions', anio: 2026 };
+
 export const SEDES = [
   {
     id: 'centro',

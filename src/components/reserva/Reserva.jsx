@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { AREAS, areaPorId, porId } from '../../data/equipo.js';
 import { SEDES, sedePorId } from '../../data/clinica.js';
 import { api } from '../../utils/api.js';
-import { diaDe, esManana, fechaLarga, hora, partesDia, rangoDias, sumarDias } from '../../utils/fechas.js';
+import {
+  MESES_RESERVABLES, desfaseLunes, diaDe, diasEnMes, esManana, fechaLarga, hora, nombreMes, partesDia, rangoDias, sumarMeses,
+} from '../../utils/fechas.js';
 import { googleCalendar, whatsapp } from '../../utils/enlaces.js';
 import { iniciales, retrato } from '../../utils/media.js';
 import { formatearRut, validarPaciente } from '../../../supabase/functions/reservas/validar.js';
@@ -10,7 +12,7 @@ import { crearIcs } from '../../../supabase/functions/reservas/calendario.js';
 import { Boton, Icono } from '../ui';
 import s from './Reserva.module.css';
 
-const DIAS = 14;
+const SEMANA = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'];
 const PREVISIONES = ['Fonasa', 'Isapre', 'Seguro Culmen (Chubb)', 'Seguro complementario', 'Particular'];
 const FORM_VACIO = { nombre: '', rut: '', email: '', telefono: '', prevision: '', comentario: '' };
 const suave = () => (matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
@@ -20,9 +22,12 @@ export function Reserva({ inicial = {}, nivel: H = 'h3' }) {
   const [sede, setSede] = useState(SEDES.some((x) => x.id === inicial.sede) ? inicial.sede : SEDES[0].id);
   const [area, setArea] = useState(areaInicial.id);
   const [prof, setProf] = useState(areaInicial.profesionales.includes(inicial.profesional) ? inicial.profesional : 'todos');
-  const [desde, setDesde] = useState(null);
+  const hoy = diaDe(Date.now());
+  const mesActual = hoy.slice(0, 7);
+  const mesLimite = sumarMeses(mesActual, MESES_RESERVABLES - 1);
+  const [mes, setMes] = useState(mesActual);
   const [recarga, setRecarga] = useState(0);
-  const [carga, setCarga] = useState({ estado: 'cargando', slots: [], desde: null, error: null });
+  const [carga, setCarga] = useState({ estado: 'cargando', slots: [], feriados: new Map(), error: null });
   const [dia, setDia] = useState(null);
   const [slot, setSlot] = useState(null);
   const [paso, setPaso] = useState(1);
@@ -32,15 +37,20 @@ export function Reserva({ inicial = {}, nivel: H = 'h3' }) {
   const tituloPaso = useRef(null);
   const pasoPrevio = useRef(paso);
 
-  // Horas libres de la sede y el motivo elegidos, 14 días a la vez.
+  // Horas libres del mes visible (desde hoy si es el mes en curso), con sus feriados.
   useEffect(() => {
     const ctrl = new AbortController();
+    const desde = mes === mesActual ? hoy : `${mes}-01`;
+    const dias = diasEnMes(mes) - Number(desde.slice(8)) + 1;
     setCarga((c) => ({ ...c, estado: 'cargando', error: null }));
-    api('horas', { sede, profesionales: areaPorId(area).profesionales, desde, dias: DIAS }, { signal: ctrl.signal })
-      .then((r) => setCarga({ estado: 'listo', slots: r.slots, desde: r.desde, error: null }))
-      .catch((e) => e.name !== 'AbortError' && setCarga({ estado: 'error', slots: [], desde: null, error: e.message }));
+    api('horas', { sede, profesionales: areaPorId(area).profesionales, desde, dias }, { signal: ctrl.signal })
+      .then((r) => setCarga({
+        estado: 'listo', slots: r.slots, error: null,
+        feriados: new Map((r.feriados ?? []).map((f) => [f.fecha, f.nombre])),
+      }))
+      .catch((e) => e.name !== 'AbortError' && setCarga({ estado: 'error', slots: [], feriados: new Map(), error: e.message }));
     return () => ctrl.abort();
-  }, [sede, area, desde, recarga]);
+  }, [sede, area, mes, recarga]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const conHoras = useMemo(() => new Set(carga.slots.map((x) => x.p)), [carga.slots]);
 
@@ -70,17 +80,17 @@ export function Reserva({ inicial = {}, nivel: H = 'h3' }) {
     raiz.current?.scrollIntoView({ behavior: suave(), block: 'start' });
   }, [paso]);
 
-  const dias = carga.desde ? rangoDias(carga.desde, DIAS) : [];
+  const diasMes = rangoDias(`${mes}-01`, diasEnMes(mes));
   const horasDelDia = dia ? [...(porDia.get(dia)?.values() ?? [])] : [];
   const areaActual = areaPorId(area);
   const sedeActual = sedePorId(sede);
   const otraSede = SEDES.find((x) => x.id !== sede);
-  const hoy = diaDe(Date.now());
   const opcionesProf = areaActual.profesionales.filter((id) => conHoras.has(id) || id === prof);
 
   const cambiar = (fn) => (e) => { fn(e.target.value); setSlot(null); setAviso(null); };
-  const elegirSede = cambiar((v) => { setSede(v); setDesde(null); });
-  const elegirArea = cambiar((v) => { setArea(v); setProf('todos'); setDesde(null); });
+  const elegirSede = cambiar(setSede);
+  const elegirArea = cambiar((v) => { setArea(v); setProf('todos'); });
+  const irAMes = (n) => { setMes((m) => sumarMeses(m, n)); setDia(null); setSlot(null); };
 
   // En páginas con guía, baja hasta ella; si no, lleva a la de la portada.
   const irAGuia = (e) => {
@@ -162,47 +172,45 @@ export function Reserva({ inicial = {}, nivel: H = 'h3' }) {
             </fieldset>
 
             <fieldset className={s.grupo}>
-              <div className={s.calendarioCabecera}>
-                <legend>Día</legend>
-                <div className={s.navFechas}>
-                  <button
-                    type="button"
-                    onClick={() => { setDesde(sumarDias(carga.desde, -DIAS)); setSlot(null); }}
-                    disabled={!carga.desde || carga.desde <= hoy}
-                    aria-label="Fechas anteriores"
-                  >
-                    <Icono nombre="chevronIzq" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setDesde(sumarDias(carga.desde, DIAS)); setSlot(null); }}
-                    disabled={!carga.desde}
-                    aria-label="Fechas siguientes"
-                  >
-                    <Icono nombre="chevronDer" />
-                  </button>
-                </div>
+              <legend>Día</legend>
+              <div className={s.navMes}>
+                <button type="button" onClick={() => irAMes(-1)} disabled={mes <= mesActual} aria-label="Mes anterior">
+                  <Icono nombre="chevronIzq" />
+                </button>
+                <p className={s.mesTitulo} aria-live="polite">{nombreMes(mes)}</p>
+                <button type="button" onClick={() => irAMes(1)} disabled={mes >= mesLimite} aria-label="Mes siguiente">
+                  <Icono nombre="chevronDer" />
+                </button>
               </div>
-              <div className={s.dias}>
-                {carga.estado === 'cargando' && !dias.length
-                  ? Array.from({ length: 7 }, (_, i) => <span key={i} className={`${s.dia} ${s.esqueleto}`} />)
-                  : dias.map((d) => {
-                      const n = porDia.get(d)?.size ?? 0;
-                      const p = partesDia(d);
-                      return (
-                        <label key={d} className={`${s.dia} ${n ? '' : s.sinHoras}`}>
-                          <input
-                            type="radio" name="dia" value={d} checked={dia === d} disabled={!n}
-                            onChange={() => { setDia(d); setSlot(null); }}
-                            aria-label={`${p.largo}, ${n ? `${n} horas libres` : 'sin horas'}`}
-                          />
-                          <span className={s.diaSemana}>{d === hoy ? 'hoy' : p.semana}</span>
-                          <span className={s.diaNumero}>{p.numero}</span>
-                          <span className={s.diaMes}>{n ? `${n} h` : p.mes}</span>
-                        </label>
-                      );
-                    })}
+              <div className={s.semana} aria-hidden="true">
+                {SEMANA.map((d) => <span key={d}>{d}</span>)}
               </div>
+              <div className={`${s.calendario} ${carga.estado === 'cargando' ? s.cargando : ''}`}>
+                {desfaseLunes(mes) > 0 && <span style={{ gridColumn: `span ${desfaseLunes(mes)}` }} aria-hidden="true" />}
+                {diasMes.map((d) => {
+                  const n = porDia.get(d)?.size ?? 0;
+                  const feriado = carga.feriados.get(d);
+                  const estado = feriado ? `feriado: ${feriado}` : n ? `${n} horas libres` : d < hoy ? 'ya pasó' : 'sin horas';
+                  return (
+                    <label
+                      key={d}
+                      title={feriado}
+                      className={[s.diaCal, n ? s.conHoras : s.sinHoras, feriado && s.feriado, d === hoy && s.hoy].filter(Boolean).join(' ')}
+                    >
+                      <input
+                        type="radio" name="dia" value={d} checked={dia === d} disabled={!n}
+                        onChange={() => { setDia(d); setSlot(null); }}
+                        aria-label={`${partesDia(d).largo}, ${estado}`}
+                      />
+                      <span className={s.diaNumero}>{Number(d.slice(8))}</span>
+                      <span className={s.diaInfo}>{feriado ? 'Feriado' : n ? `${n} h` : ''}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              <p className={s.leyenda}>
+                Reservas online hasta el {partesDia(`${mesLimite}-${diasEnMes(mesLimite)}`).largo}. Domingos y festivos cerrado.
+              </p>
             </fieldset>
 
             {aviso && (
@@ -215,15 +223,15 @@ export function Reserva({ inicial = {}, nivel: H = 'h3' }) {
               </SinHoras>
             ) : carga.estado === 'listo' && porDia.size === 0 ? (
               <SinHoras
-                titulo="No quedan horas online en estas fechas."
-                texto={`Para ${prof === 'todos' ? areaActual.nombre.toLowerCase() : porId(prof).nombre} en ${sedeActual.nombre}. Prueba la otra sede o las fechas siguientes.`}
+                titulo={`No quedan horas online en ${nombreMes(mes).split(' ')[0].toLowerCase()}.`}
+                texto={`Para ${prof === 'todos' ? areaActual.nombre.toLowerCase() : porId(prof).nombre} en ${sedeActual.nombre}. Prueba el mes siguiente o la otra sede.`}
                 sede={sedeActual}
               >
-                <Boton variante="oscuro" onClick={() => { setSede(otraSede.id); setDesde(null); }}>
+                {mes < mesLimite && (
+                  <Boton variante="oscuro" onClick={() => irAMes(1)}>Ver {nombreMes(sumarMeses(mes, 1)).split(' ')[0]}</Boton>
+                )}
+                <Boton variante="contorno" onClick={() => setSede(otraSede.id)}>
                   Ver {otraSede.nombre.replace('Sucursal ', '')}
-                </Boton>
-                <Boton variante="contorno" onClick={() => setDesde(sumarDias(carga.desde, DIAS))}>
-                  Fechas siguientes
                 </Boton>
               </SinHoras>
             ) : (

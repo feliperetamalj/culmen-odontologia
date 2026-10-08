@@ -24,3 +24,20 @@ export const partesDia = (dia) => {
     largo: etiqueta({ weekday: 'long', day: 'numeric', month: 'long' }).format(d),
   };
 };
+
+// --- Meses ("YYYY-MM") para el calendario de reservas ---
+export const MESES_RESERVABLES = 3; // el mes en curso y los dos siguientes (el servidor aplica el mismo límite)
+export const sumarMeses = (mes, n) => {
+  const [a, m] = mes.split('-').map(Number);
+  return new Date(Date.UTC(a, m - 1 + n, 1)).toISOString().slice(0, 7);
+};
+export const diasEnMes = (mes) => {
+  const [a, m] = mes.split('-').map(Number);
+  return new Date(Date.UTC(a, m, 0)).getUTCDate();
+};
+/** Columna del día 1 en una grilla que parte el lunes (0 = lunes … 6 = domingo). */
+export const desfaseLunes = (mes) => (new Date(`${mes}-01T12:00:00Z`).getUTCDay() + 6) % 7;
+export const nombreMes = (mes) => {
+  const nombre = new Intl.DateTimeFormat('es-CL', { timeZone: 'UTC', month: 'long' }).format(new Date(`${mes}-15T12:00:00Z`));
+  return `${nombre.charAt(0).toUpperCase()}${nombre.slice(1)} ${mes.slice(0, 4)}`;
+};

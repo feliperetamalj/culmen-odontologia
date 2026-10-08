@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import s from './CarruselLogos.module.css';
 
-const LOGOS = import.meta.glob('../../assets/convenios/*.webp', { eager: true, import: 'default' });
-const logo = (nombre) => LOGOS[`../../assets/convenios/${nombre}.webp`];
+const LOGOS = import.meta.glob(['../../assets/convenios/*.webp', '../../assets/seguros/*.webp'], { eager: true, import: 'default' });
+const logo = (nombre) => Object.entries(LOGOS).find(([ruta]) => ruta.endsWith(`/${nombre}.webp`))?.[1];
 
 /**
  * Cinta de logos en movimiento continuo. Se detiene (y muestra los colores) al pasar

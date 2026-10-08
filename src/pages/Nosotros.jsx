@@ -4,7 +4,7 @@ import { useTitulo } from '../hooks/useTitulo.js';
 import { Cabecera, Reveal } from '../components/ui';
 import { PageHero } from '../components/sections/PageHero.jsx';
 import { Equipo } from '../components/sections/Equipo.jsx';
-import { SeccionReserva } from '../components/sections/SeccionReserva.jsx';
+import { CtaReserva } from '../components/sections/CtaReserva.jsx';
 import s from './Nosotros.module.css';
 
 export function Nosotros() {
@@ -42,7 +42,7 @@ export function Nosotros() {
           <p className={s.nota}>TONS: Técnico en Odontología Nivel Superior.</p>
         </div>
       </section>
-      <SeccionReserva
+      <CtaReserva
         titulo={<>¿Listo para <em>conocernos?</em></>}
         texto="Reserva tu primera cita y descubre cómo podemos ayudarte a recuperar tu mejor sonrisa."
       />

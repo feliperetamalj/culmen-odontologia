@@ -22,6 +22,7 @@ const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SE
 const TZ = 'America/Santiago';
 const SITE = (Deno.env.get('SITE_URL') ?? 'https://www.culmenodontologia.cl').replace(/\/$/, '');
 const MAX_HORAS_POR_RUT = 2;
+const MESES_RESERVABLES = 3; // el mes en curso y los dos siguientes
 const SLUG = /^[a-z0-9-]{2,40}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -59,6 +60,12 @@ Deno.serve(async (req) => {
 
 const hoySantiago = () => new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date());
 const fechaSantiago = (iso: string) => new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date(iso));
+const sumarDias = (dia: string, n: number) => new Date(Date.parse(`${dia}T12:00:00Z`) + n * 86400000).toISOString().slice(0, 10);
+/** Último día reservable: fin del mes MESES_RESERVABLES − 1 meses después del actual. */
+function limiteReserva(hoy: string) {
+  const [a, m] = hoy.split('-').map(Number);
+  return new Date(Date.UTC(a, m - 1 + MESES_RESERVABLES, 0)).toISOString().slice(0, 10);
+}
 
 async function horas(b: { sede?: string; profesionales?: string[]; desde?: string; dias?: number }) {
   const sede = String(b.sede ?? '');
@@ -67,8 +74,12 @@ async function horas(b: { sede?: string; profesionales?: string[]; desde?: strin
     throw new Fallo(400, 'Elige sede y especialidad.');
   }
   const hoy = hoySantiago();
+  const limite = limiteReserva(hoy);
   const desde = /^\d{4}-\d{2}-\d{2}$/.test(b.desde ?? '') && b.desde! > hoy ? b.desde! : hoy;
-  const dias = Math.min(Math.max(Number(b.dias) || 14, 1), 31);
+  const pedidos = Math.min(Math.max(Number(b.dias) || 14, 1), 31);
+  const hasta = [sumarDias(desde, pedidos - 1), limite].sort()[0];
+  if (desde > limite) return { desde, dias: 0, limite, slots: [], feriados: [] };
+  const dias = Math.round((Date.parse(hasta) - Date.parse(desde)) / 86400000) + 1;
 
   const { data, error } = await db.rpc('slots_disponibles', {
     p_profesionales: profesionales, p_sede: sede, p_desde: desde, p_dias: dias,
@@ -89,7 +100,8 @@ async function horas(b: { sede?: string; profesionales?: string[]; desde?: strin
       return !tramos.some((t) => Date.parse(t.start) < f && Date.parse(t.end) > i);
     });
   }
-  return { desde, dias, slots: slots.map((s) => ({ p: s.profesional_id, i: s.inicio, f: s.fin })) };
+  const { data: feriados } = await db.from('feriados').select('fecha, nombre').gte('fecha', desde).lte('fecha', hasta);
+  return { desde, dias, limite, feriados: feriados ?? [], slots: slots.map((s) => ({ p: s.profesional_id, i: s.inicio, f: s.fin })) };
 }
 
 // --- Reservar -----------------------------------------------------------------
