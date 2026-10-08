@@ -4,6 +4,7 @@ import { reservarCon } from '../../utils/enlaces.js';
 import { Boton, Cabecera, Etiqueta, Icono, Reveal } from '../ui';
 import { Equipo } from './Equipo.jsx';
 import { Guia } from './Guia.jsx';
+import { CarruselLogos } from './CarruselLogos.jsx';
 import s from './Bloques.module.css';
 
 /** Renderiza los bloques de contenido de una página de tratamiento (src/data/paginas.js). */
@@ -127,4 +128,14 @@ function Chips({ etiqueta, titulo, texto, items }) {
   );
 }
 
-const TIPOS = { tarjetas: Tarjetas, detalle: Detalle, pasos: Pasos, chips: Chips };
+function Logos({ etiqueta, titulo, texto, items, nota }) {
+  return (
+    <>
+      <Cabecera etiqueta={etiqueta} titulo={titulo} texto={texto} centrado />
+      <CarruselLogos items={items} etiqueta={titulo} />
+      {nota && <p className={s.notaLogos}>{nota}</p>}
+    </>
+  );
+}
+
+const TIPOS = { tarjetas: Tarjetas, detalle: Detalle, pasos: Pasos, chips: Chips, logos: Logos };

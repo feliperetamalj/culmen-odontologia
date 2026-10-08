@@ -35,7 +35,12 @@ export const INSTALACIONES = [
 
 export const COBERTURA = {
   isapres: ['Zurich', 'Consorcio', 'Chilena Consolidada', 'Bice Vida', 'Sermecoop'],
-  convenios: ['Colegio Médico de Talca', 'Viña Terranoble', 'Coca-Cola Embonor Talca'],
+  // logo = archivo en src/assets/convenios
+  convenios: [
+    { nombre: 'Colegio Médico de Talca', logo: 'colegio-medico-talca' },
+    { nombre: 'Viña Terranoble', logo: 'vina-terranoble' },
+    { nombre: 'Coca-Cola Embonor Talca', logo: 'coca-cola-embonor' },
+  ],
   seguro: [
     { valor: '70%', texto: 'de cobertura' },
     { valor: '0,50 UF', texto: 'de deducible' },
@@ -290,8 +295,9 @@ export const PAGINAS = {
         notas: ['Carencia de 1 día para urgencias.', '30 días para tratamientos básicos y preventivos.', '180 días para prótesis e implantes.'],
       },
       {
-        tipo: 'chips', id: 'convenios', etiqueta: 'Convenios', titulo: 'Beneficios para empresas',
-        texto: 'Descuentos y beneficios para trabajadores y sus familias. ¿Tienes una empresa y te interesa un convenio? Escríbenos.',
+        tipo: 'logos', id: 'convenios', etiqueta: 'Convenios', titulo: 'Empresas que confían en nosotros',
+        texto: 'Sus trabajadores y sus familias tienen descuentos y beneficios exclusivos en Culmen.',
+        nota: '¿Tienes una empresa y te interesa un convenio? Escríbenos a contacto@culmenodontologia.cl.',
         items: COBERTURA.convenios,
       },
       {

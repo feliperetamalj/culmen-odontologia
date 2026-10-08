@@ -254,7 +254,7 @@ function Cobertura() {
             <Icono nombre="tarjeta" tamano="28" />
             <h3>Convenios y cuotas</h3>
             <p>Beneficios para trabajadores de:</p>
-            <ul className={s.lista}>{COBERTURA.convenios.map((x) => <li key={x}>{x}</li>)}</ul>
+            <ul className={s.lista}>{COBERTURA.convenios.map((x) => <li key={x.nombre}>{x.nombre}</li>)}</ul>
             <p className={s.cobNota}>Efectivo, débito y crédito, con pago en cuotas.</p>
           </Reveal>
         </div>

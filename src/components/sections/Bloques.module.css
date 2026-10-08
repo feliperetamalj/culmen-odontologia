@@ -115,3 +115,5 @@
   line-height: 1.2;
 }
 .blanco .muro li { background: var(--surface-page); }
+
+.notaLogos { margin-top: var(--space-5); text-align: center; font-size: var(--text-sm); color: var(--text-muted); }
