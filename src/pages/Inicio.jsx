@@ -101,8 +101,9 @@ function HeroFondo() {
 
   useEffect(() => {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches || navigator.connection?.saveData) return;
-    const t = setTimeout(() => setCargar(true), document.readyState === 'complete' ? 600 : 2000);
-    return () => clearTimeout(t);
+    // Apenas se pinta la página: la foto ya está en pantalla y el reproductor carga en paralelo.
+    const id = requestAnimationFrame(() => setCargar(true));
+    return () => cancelAnimationFrame(id);
   }, []);
 
   // Estado del reproductor vía postMessage (API de iframes de YouTube, sin cargar su script).
@@ -114,8 +115,9 @@ function HeroFondo() {
       let d;
       try { d = JSON.parse(e.data); } catch { return; }
       const estado = d.event === 'onStateChange' ? d.info : d.info?.playerState;
-      // 1 = reproduciendo. Se espera a que YouTube oculte título y rótulos.
-      if (estado === 1 && !espera) espera = setTimeout(() => setVisible(true), 3500);
+      // 1 = reproduciendo. Los rótulos de YouTube quedan fuera del cuadro (ver .video),
+      // así que basta un instante para que haya imagen.
+      if (estado === 1 && !espera) espera = setTimeout(() => setVisible(true), 300);
     };
     window.addEventListener('message', alRecibir);
     return () => { window.removeEventListener('message', alRecibir); clearTimeout(espera); };
