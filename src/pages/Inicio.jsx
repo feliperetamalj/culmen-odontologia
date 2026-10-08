@@ -49,7 +49,8 @@ export function Inicio() {
 function Hero() {
   return (
     <section className={`${s.hero} on-dark`}>
-      <div className={`contenedor ${s.heroGrilla}`}>
+      <HeroFondo />
+      <div className={`contenedor ${s.heroContenido}`}>
         <div className={s.heroTexto}>
           <Etiqueta claro>Clínica dental en Talca · Centro y Las Rastras</Etiqueta>
           <h1 className={s.titular}>
@@ -70,8 +71,6 @@ function Hero() {
           </div>
           <p className={s.micro}><Icono nombre="check" tamano="16" /> Reserva en 1 minuto · confirmación inmediata por correo</p>
         </div>
-
-        <HeroMedia />
       </div>
 
       <div className="contenedor">
@@ -99,7 +98,7 @@ function Hero() {
 const YT = 'https://www.youtube-nocookie.com';
 const VIDEO_SRC = `${YT}/embed/${VIDEO.youtube}?autoplay=1&mute=1&loop=1&playlist=${VIDEO.youtube}&controls=0&playsinline=1&rel=0&modestbranding=1&disablekb=1&iv_load_policy=3&enablejsapi=1`;
 
-function HeroMedia() {
+function HeroFondo() {
   const [cargar, setCargar] = useState(false);
   const [visible, setVisible] = useState(false);
   const [pausado, setPausado] = useState(false);
@@ -139,16 +138,9 @@ function HeroMedia() {
   };
 
   return (
-    <div className={s.heroFoto}>
-      <div className={s.media}>
-        <img
-          src={foto('hero-equipo')}
-          alt="El equipo de Culmen Odontología frente al logotipo de la clínica"
-          fetchpriority="high"
-          decoding="async"
-          width="1800"
-          height="1203"
-        />
+    <>
+      <div className={s.fondo}>
+        <img src={foto('hero-equipo')} alt="" fetchpriority="high" decoding="async" width="1800" height="1203" />
         {cargar && (
           <iframe
             ref={iframe}
@@ -161,18 +153,15 @@ function HeroMedia() {
             onLoad={escuchar}
           />
         )}
-        {visible && (
-          <button type="button" className={s.pausa} onClick={alternar}>
-            <Icono nombre={pausado ? 'play' : 'pausa'} tamano="18" />
-            <span className="sr-only">{pausado ? 'Reproducir video' : 'Pausar video'}</span>
-          </button>
-        )}
+        <div className={s.velo} />
       </div>
-      <p className={s.heroNota}>
-        <span className={s.heroNumero}>45</span>
-        <span>minutos de evaluación en tu primera cita</span>
-      </p>
-    </div>
+      {visible && (
+        <button type="button" className={s.pausa} onClick={alternar}>
+          <Icono nombre={pausado ? 'play' : 'pausa'} tamano="18" />
+          <span className="sr-only">{pausado ? 'Reproducir video de presentación' : 'Pausar video de presentación'}</span>
+        </button>
+      )}
+    </>
   );
 }
 
