@@ -13,6 +13,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2.45.4';
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
 import { validarPaciente } from './validar.js';
 import { crearIcs } from './calendario.js';
+import { correoConfirmacion } from './correo.js';
 
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
   auth: { persistSession: false },
@@ -134,8 +135,7 @@ async function reservar(b: Record<string, unknown>) {
     crearEvento(prof.calendar_id ?? sed.calendar_id, r, prof, sed).catch((e) => (console.error('Google', e), null)),
     enviarCorreo(
       r.email,
-      `Hora confirmada · ${fechaLarga(r.inicio)}, ${hora(r.inicio)}`,
-      correoConfirmacion(r, prof, sed),
+      correoConfirmacion({ r, prof, sede: sed, site: SITE, googleCalendar: enlaceGoogleCalendar(r, prof, sed) }),
       crearIcs({ ...resumen(r, prof, sed), cancelar: `${SITE}/reserva/cancelar?token=${r.cancel_token}` }),
     )
       .catch((e) => (console.error('Correo', e), false)),
@@ -178,12 +178,6 @@ async function cancelar(b: { token?: string }) {
 
 // --- Formato ------------------------------------------------------------------
 
-const fechaLarga = (iso: string) =>
-  new Intl.DateTimeFormat('es-CL', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(iso));
-const hora = (iso: string) =>
-  new Intl.DateTimeFormat('es-CL', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(iso));
-const esc = (s: unknown) =>
-  String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 const utcCompacto = (iso: string) => new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 
 // deno-lint-ignore no-explicit-any
@@ -211,7 +205,7 @@ function enlaceGoogleCalendar(r: Fila, prof: Fila, sede: Fila) {
 // --- Correo (SMTP o Resend) ---------------------------------------------------
 // Supabase bloquea los puertos 25 y 587: usar SMTP con TLS directo en 465.
 
-async function enviarCorreo(para: string, asunto: string, html: string, ics: string) {
+async function enviarCorreo(para: string, { asunto, html, texto }: { asunto: string; html: string; texto: string }, ics: string) {
   const from = Deno.env.get('EMAIL_FROM') ?? 'Culmen Odontología <reservas@culmenodontologia.cl>';
   const replyTo = Deno.env.get('EMAIL_REPLY_TO') ?? 'contacto@culmenodontologia.cl';
   const host = Deno.env.get('SMTP_HOST');
@@ -227,7 +221,7 @@ async function enviarCorreo(para: string, asunto: string, html: string, ics: str
     try {
       await smtp.send({
         from, to: para, replyTo, subject: asunto, html,
-        content: 'Tu hora en Culmen Odontología está confirmada.',
+        content: texto,
         attachments: [{ filename: 'hora-culmen.ics', content: ics, encoding: 'text', contentType: 'text/calendar; charset=utf-8; method=PUBLISH' }],
       });
       return true;
@@ -241,54 +235,12 @@ async function enviarCorreo(para: string, asunto: string, html: string, ics: str
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      from, reply_to: replyTo, to: [para], subject: asunto, html,
+      from, reply_to: replyTo, to: [para], subject: asunto, html, text: texto,
       attachments: [{ filename: 'hora-culmen.ics', content: btoa(String.fromCharCode(...new TextEncoder().encode(ics))) }],
     }),
   });
   if (!res.ok) console.error('Resend', res.status, await res.text());
   return res.ok;
-}
-
-function correoConfirmacion(r: Fila, prof: Fila, sede: Fila) {
-  const fila = (k: string, v: string) =>
-    `<tr><td style="padding:10px 0;color:#6b6358;font-size:13px;width:110px;vertical-align:top">${k}</td>` +
-    `<td style="padding:10px 0;color:#141210;font-size:15px;font-weight:600">${v}</td></tr>`;
-  const cancelar = `${SITE}/reserva/cancelar?token=${r.cancel_token}`;
-  const wa = `https://wa.me/${sede.whatsapp.replace('+', '')}`;
-  return `<!doctype html><html lang="es"><body style="margin:0;background:#f4efe6;font-family:Helvetica,Arial,sans-serif">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4efe6;padding:24px 12px"><tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden">
-  <tr><td style="background:#121110;padding:28px 32px"><img src="${SITE}/email/logo.png" width="200" alt="Culmen Odontología" style="display:block;border:0"></td></tr>
-  <tr><td style="padding:32px">
-    <p style="margin:0 0 6px;color:#8a6a2f;font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700">Hora confirmada</p>
-    <h1 style="margin:0 0 16px;color:#141210;font-size:24px;line-height:1.25">Hola ${esc(r.nombre.split(' ')[0])}, te esperamos.</h1>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #ece4d6;border-bottom:1px solid #ece4d6;margin:8px 0 24px">
-      ${fila('Día', esc(fechaLarga(r.inicio)))}
-      ${fila('Hora', `${hora(r.inicio)} – ${hora(r.fin)}`)}
-      ${fila('Profesional', `${esc(prof.nombre)}<br><span style="font-weight:400;color:#6b6358;font-size:13px">${esc(prof.especialidad)}</span>`)}
-      ${fila('Sede', `${esc(sede.nombre)}<br><span style="font-weight:400;color:#6b6358;font-size:13px">${esc(sede.direccion)}</span>`)}
-      ${fila('Paciente', esc(r.nombre))}
-      ${fila('Celular', esc(r.telefono))}
-      ${r.motivo ? fila('Motivo', esc(r.motivo)) : ''}
-      ${r.prevision ? fila('Previsión', esc(r.prevision)) : ''}
-      ${r.comentario ? fila('Comentario', `<span style="font-weight:400">${esc(r.comentario)}</span>`) : ''}
-    </table>
-    <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-      <td style="background:#121110;border-radius:999px"><a href="${enlaceGoogleCalendar(r, prof, sede)}" style="display:inline-block;padding:13px 22px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700">Agregar a Google Calendar</a></td>
-      <td style="width:10px"></td>
-      <td style="border:1px solid #d9cdb6;border-radius:999px"><a href="${esc(sede.maps_url)}" style="display:inline-block;padding:12px 20px;color:#141210;text-decoration:none;font-size:14px;font-weight:700">Cómo llegar</a></td>
-    </tr></table>
-    <p style="margin:12px 0 0;color:#6b6358;font-size:13px;line-height:1.6">¿Usas Apple Calendar u Outlook? Abre el archivo <strong>hora-culmen.ics</strong> adjunto y la hora queda en tu calendario, con recordatorio el día antes.</p>
-    <p style="margin:28px 0 8px;color:#141210;font-size:15px;font-weight:700">Para tu visita</p>
-    <ul style="margin:0;padding-left:18px;color:#3d3830;font-size:14px;line-height:1.7">
-      <li>Llega 10 minutos antes.</li>
-      <li>Trae tu cédula de identidad y, si tienes, tu credencial de seguro o previsión.</li>
-      <li>Si sientes ansiedad o miedo al dentista, cuéntanos: tenemos opciones de sedación.</li>
-    </ul>
-    <p style="margin:28px 0 0;color:#6b6358;font-size:13px;line-height:1.6">¿No puedes asistir? <a href="${cancelar}" style="color:#8a6a2f;font-weight:700">Cancela tu hora aquí</a> para liberarla, o escríbenos por <a href="${wa}" style="color:#8a6a2f;font-weight:700">WhatsApp</a>.</p>
-  </td></tr>
-  <tr><td style="background:#faf7f1;padding:20px 32px;color:#6b6358;font-size:12px;line-height:1.6">Culmen Odontología · Talca<br>Responde este correo si tienes dudas: contacto@culmenodontologia.cl</td></tr>
-</table></td></tr></table></body></html>`;
 }
 
 // --- Google Calendar (cuenta de servicio, JWT firmado con WebCrypto) ----------

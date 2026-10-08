@@ -138,3 +138,18 @@ await sharp(og)
   .toFile(`${PUBLIC}/og-image.jpg`);
 
 console.log('Imágenes listas.');
+
+// --- Retratos para el correo: JPG 192×192 (Outlook no lee WebP). Sin foto → iniciales.
+await mkdir(`${PUBLIC}/email/equipo`, { recursive: true });
+const { PROFESIONALES } = await import('../src/data/equipo.js');
+for (const p of PROFESIONALES) {
+  const destino = `${PUBLIC}/email/equipo/${p.id}.jpg`;
+  if (p.foto) {
+    await sharp(`${EQUIPO}/${p.id}.webp`).resize(192, 192, { fit: 'cover', position: 'north' }).jpeg({ quality: 80, mozjpeg: true }).toFile(destino);
+  } else {
+    const ini = p.nombre.replace(/^Dra?\.\s*/, '').split(' ').slice(0, 2).map((x) => x[0]).join('');
+    await sharp(Buffer.from(`<svg width="192" height="192"><rect width="192" height="192" fill="#F4EAD3"/>
+      <text x="96" y="118" text-anchor="middle" font-family="Georgia, serif" font-size="68" font-weight="600" fill="#8A6A2F">${ini}</text></svg>`))
+      .jpeg({ quality: 85 }).toFile(destino);
+  }
+}
