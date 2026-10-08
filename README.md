@@ -73,6 +73,14 @@ Sin la key la reserva funciona igual y la pantalla avisa que el correo no salió
    - o en `sedes.calendar_id` → calendario general de la sede, para quien no tenga uno propio.
 5. Secret `GOOGLE_SERVICE_ACCOUNT` = el contenido completo del JSON.
 
+### Supabase gratis: sin pausas
+
+El plan gratis pausa el proyecto tras 7 días sin actividad. El flujo
+`.github/workflows/mantener-supabase.yml` consulta la agenda todos los días a las
+09:00 para evitarlo (GitHub → Actions → "Mantener Supabase activo" → *Run workflow*
+para correrlo a mano). GitHub desactiva las tareas programadas de repositorios sin
+commits en 60 días: si eso pasa, se reactiva con un clic en la misma pestaña.
+
 ### 4. Despliegue (Vercel)
 
 Repositorio: `github.com/feliperetamalj/culmen-odontologia`, conectado al proyecto

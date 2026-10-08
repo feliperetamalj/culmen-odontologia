@@ -1,0 +1,23 @@
+# El plan gratis de Supabase pausa los proyectos tras 7 días sin actividad.
+# Una consulta diaria a la agenda (que lee la base de datos) lo mantiene activo.
+name: Mantener Supabase activo
+
+on:
+  schedule:
+    - cron: '0 12 * * *' # todos los días, 09:00 en Chile (verano)
+  workflow_dispatch: # para correrlo a mano desde la pestaña Actions
+
+jobs:
+  consultar-agenda:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consultar horas disponibles
+        env:
+          # Clave anon de Supabase: pública por diseño (la misma de src/utils/api.js).
+          SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11dHZsZXJnd3hrbnFpeWFlZm52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0MTE5NjQsImV4cCI6MjEwNjk4Nzk2NH0.SjVxyi1Gn9_uOwNoJaEAGZWBM7TUcx3ez0-yy1bBvLs
+        run: |
+          curl -fsS -o /dev/null -w "Supabase respondió HTTP %{http_code}\n" \
+            -X POST "https://mutvlergwxknqiyaefnv.supabase.co/functions/v1/reservas" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"accion":"horas","sede":"centro","profesionales":["constanza-yanez"],"dias":1}'
