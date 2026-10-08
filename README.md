@@ -74,8 +74,14 @@ Sin la key la reserva funciona igual y la pantalla avisa que el correo no salió
 
 ### 4. Despliegue (Vercel)
 
-`vercel.json` ya trae reescrituras de rutas y cabeceras. Importar el repositorio en
-Vercel (framework Vite) o ejecutar `npx vercel --prod`, y apuntar el dominio.
+Repositorio: `github.com/feliperetamalj/culmen-odontologia`, conectado al proyecto
+Vercel `culmen-odontologia` → https://culmen-odontologia.vercel.app
+
+- **Cada push a `main` publica en producción.** Para revisar antes, trabaja en otra
+  rama: cada push ahí genera una URL de previsualización.
+- `vercel.json` ya trae reescrituras de rutas y cabeceras de seguridad.
+- Dominio propio: Vercel → proyecto → Settings → Domains → agregar
+  `culmenodontologia.cl` y `www`, y crear en Hostinger los registros DNS que indique.
 La URL y la clave anon de Supabase están en `src/utils/api.js` (son públicas por diseño).
 
 ## Informe del sitio anterior (culmenodontologia.cl)
