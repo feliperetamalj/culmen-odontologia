@@ -2,12 +2,15 @@
 // POST { accion: 'horas' | 'reservar' | 'ver' | 'cancelar', ... }
 //
 // Secretos (Supabase → Edge Functions → Secrets):
-//   RESEND_API_KEY          correo de confirmación (sin ella, la reserva funciona y el correo se omite)
+//   Correo (sin ninguno de los dos, la reserva funciona y el correo se omite):
+//     SMTP_HOST, SMTP_PORT (465), SMTP_USER, SMTP_PASS   p. ej. Gmail con contraseña de aplicación
+//     RESEND_API_KEY                                     alternativa por API
 //   EMAIL_FROM              "Culmen Odontología <reservas@culmenodontologia.cl>"
 //   EMAIL_REPLY_TO          contacto@culmenodontologia.cl
 //   SITE_URL                https://www.culmenodontologia.cl
 //   GOOGLE_SERVICE_ACCOUNT  JSON de la cuenta de servicio con acceso a los calendarios
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4';
+import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
 import { validarPaciente } from './validar.js';
 
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
@@ -199,19 +202,35 @@ function enlaceGoogleCalendar(r: Fila, prof: Fila, sede: Fila) {
   return `https://calendar.google.com/calendar/render?${q}`;
 }
 
-// --- Correo (Resend) ----------------------------------------------------------
+// --- Correo (SMTP o Resend) ---------------------------------------------------
+// Supabase bloquea los puertos 25 y 587: usar SMTP con TLS directo en 465.
 
 async function enviarCorreo(para: string, asunto: string, html: string) {
+  const from = Deno.env.get('EMAIL_FROM') ?? 'Culmen Odontología <reservas@culmenodontologia.cl>';
+  const replyTo = Deno.env.get('EMAIL_REPLY_TO') ?? 'contacto@culmenodontologia.cl';
+  const host = Deno.env.get('SMTP_HOST');
+  if (host) {
+    const smtp = new SMTPClient({
+      connection: {
+        hostname: host,
+        port: Number(Deno.env.get('SMTP_PORT') ?? 465),
+        tls: true,
+        auth: { username: Deno.env.get('SMTP_USER')!, password: Deno.env.get('SMTP_PASS')! },
+      },
+    });
+    try {
+      await smtp.send({ from, to: para, replyTo, subject: asunto, html, content: 'Tu hora en Culmen Odontología está confirmada.' });
+      return true;
+    } finally {
+      await smtp.close();
+    }
+  }
   const key = Deno.env.get('RESEND_API_KEY');
-  if (!key) { console.warn('RESEND_API_KEY no configurada: correo omitido.'); return false; }
+  if (!key) { console.warn('Sin SMTP_HOST ni RESEND_API_KEY: correo omitido.'); return false; }
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      from: Deno.env.get('EMAIL_FROM') ?? 'Culmen Odontología <reservas@culmenodontologia.cl>',
-      reply_to: Deno.env.get('EMAIL_REPLY_TO') ?? 'contacto@culmenodontologia.cl',
-      to: [para], subject: asunto, html,
-    }),
+    body: JSON.stringify({ from, reply_to: replyTo, to: [para], subject: asunto, html }),
   });
   if (!res.ok) console.error('Resend', res.status, await res.text());
   return res.ok;
